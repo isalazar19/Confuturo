@@ -1,0 +1,8 @@
+/* ejecutar procedure con parametros de salida */
+
+declare
+   cod number;
+   msj varchar2(5);
+begin 
+   SP_CT_GENARCH_CARTERA_EXCEL(202404,cod,msj);
+end;

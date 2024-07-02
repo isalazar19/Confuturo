@@ -1,0 +1,114 @@
+/*select prm_fec_desde, prm_fec_hasta+30
+--//round(months_between( prm_fec_desde, sysdate),0) --> ISA -20-01-2016
+--into :ll_cant_mes 
+from pensiones.paramet_fechas 
+where prm_tipo_tabla ='FRCAL'
+--//and trunc(sysdate) between prm_fec_desde and prm_fec_hasta;
+--and trunc(sysdate) between prm_fec_desde and (prm_fec_hasta+1);*/
+
+/*select trunc(sysdate) from dual;*/
+
+/*select * from sol_endoso_excl_benef where exc_poliza=13977; */
+
+/*select * from beneficios*/
+
+
+/*select * from pensiones.codigos where cod_template like '%TE01-ESTADOS-CIVILES%' and cod_int_num in (3,1);*/
+
+/*select * from beneficiarios where ben_poliza=602918*/
+
+/* bscar una poliza con beneficiarioss hijos solteros y menores a 24 años */
+  select ben_poliza, 
+           nat_numrut ||'-'|| nat_dv rut,   
+           nat_nomb  nombre, 
+           case 
+              when ben_invalido = 1 then 
+                  ' Invalido total'
+              when ben_invalido = 3 then
+                   ' Invalido parcial'
+              else
+                ' No invalido'
+           end  inval,
+           nat_fec_inval,
+      nat_numrut,
+           nat_fec_nacim ,
+           decode(nat_sexo, 'F', 'Femenino', 'Masculino') det_sexo,
+      nat_sexo,
+         ben_beneficiario,  
+           nat_numrut,
+           BNF_LINEA,
+           BNF_PRODUCTO,   
+           BNF_CAUSANTE,   
+           BNF_BENEFICIARIO,   
+           BNF_COBERTURA,   
+           BNF_POLIZA ,
+      (select trunc(pns_monto_pension, 2)
+           from pensiones.pensiones
+           where pns_poliza = bnf_poliza
+                  and pns_causante = bnf_causante
+                  and pns_beneficiario = bnf_beneficiario
+                  and pns_cobertura = bnf_cobertura 
+                  and pns_periodo =  202311),
+        ben_relacion,
+     nat_est_civil,
+     ben_invalido,
+     f_aa(nat_fec_nacim,SYSDATE) edad,
+     ben_documento
+    from beneficiarios,   
+         beneficios,
+         persnat 
+      , pensiones.asegafp
+   where ben_linea = 3
+      and ben_poliza = 610349 --602918
+      and ben_linea = bnf_linea 
+         and ben_producto = bnf_producto 
+         and ben_documento = bnf_documento 
+         and ben_poliza = bnf_poliza 
+         and ben_causante =  bnf_causante 
+         and ben_beneficiario =  bnf_beneficiario 
+         and ben_beneficiario = nat_id 
+         and bnf_estado = 0 
+      and ben_poliza = asaf_poliza
+         and ben_causante = asaf_asegurado
+         and ben_producto = asaf_producto
+         and ben_relacion <> 0
+         --and TRUNC (nat_fec_nacim) >= TO_DATE ('01011999', 'DDMMRR')
+         
+         
+         
+/* hacer el update */
+/*
+update pensiones.beneficios
+      set bnf_estado = 1
+    where bnf_poliza        = :i_poliza
+      and bnf_beneficiario = :i_rbrlm17_ben
+      and bnf_linea        = :g_linea
+      and bnf_producto     = :i_producto
+      and bnf_documento    = :i_documento
+      and bnf_causante     = :i_causante;
+*/      
+
+select * from beneficios
+where bnf_poliza=610349
+and bnf_beneficiario=1118150
+and bnf_linea=3
+and bnf_producto=603
+and bnf_documento=2
+and bnf_causante=1005876
+
+select * from beneficiarios
+where ben_beneficiario = 1118150  
+and ben_poliza   = 610349
+and ben_producto = 603
+and ben_documento = 2
+and ben_causante = 1005876
+and ben_linea    = 3;
+
+
+/* el delete */
+select * from pensiones.datos_flujos
+where  flj_numpol = 610349
+--and flj_fec_proc = :ld_fec_proceso
+and flj_tipo_proc = 'A';  
+
+select * from catmod

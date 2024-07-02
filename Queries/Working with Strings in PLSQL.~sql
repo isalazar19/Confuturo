@@ -1,0 +1,122 @@
+/* ejemplo #1*/
+DECLARE
+  l_company_name VARCHAR2(100);
+BEGIN
+  l_company_name := 'Oracle Corporation';
+  DBMS_OUTPUT.put_line(l_company_name);
+END;
+
+/* ejemplo #2 Concatenate multiple strings.*/
+DECLARE
+  l_first  VARCHAR2(10) := 'Steven';
+  l_middle VARCHAR2(5) := 'Eric';
+  l_last   VARCHAR2(20) := 'Feuerstein';
+BEGIN
+  /* Use the CONCAT function */
+  DBMS_OUTPUT.put_line(CONCAT('Steven', 'Feuerstein'));
+  /* Use the || operator */
+  DBMS_OUTPUT.put_line(l_first || ' ' || l_middle || ' ' || l_last);
+END;
+
+/* ejemplo #3 Change the case of a string.*/
+DECLARE
+  l_company_name VARCHAR2(25) := 'oraCLE corporatION';
+BEGIN
+  DBMS_OUTPUT.put_line(UPPER(l_company_name));
+  DBMS_OUTPUT.put_line(LOWER(l_company_name));
+  DBMS_OUTPUT.put_line(INITCAP(l_company_name));
+END;
+
+/* ejemplo #4 Extract part of a string*/
+DECLARE
+   l_company_name   VARCHAR2 (6) := 'Oracle';
+BEGIN
+   /* Retrieve the first character in the string */
+   DBMS_OUTPUT.put_line (
+              SUBSTR (l_company_name, 1, 1));
+   /* Retrieve the last character in the string */
+   DBMS_OUTPUT.put_line (
+              SUBSTR (l_company_name, -1, 1));
+   /* Retrieve three characters, 
+            starting from the second position. */
+   DBMS_OUTPUT.put_line (
+              SUBSTR (l_company_name, 2, 3));
+   /* Retrieve the remainder of the string,
+            starting from the second position. */
+   DBMS_OUTPUT.put_line (
+              SUBSTR (l_company_name, 2));
+END;
+
+/* ejemplo #5 Find a string within another string.*/
+BEGIN
+   /* Find the location of the first "e" */
+   DBMS_OUTPUT.put_line (
+      INSTR ('steven feuerstein', 'e'));
+   /* Find the location of the first "e" starting from position 6 */ 
+   DBMS_OUTPUT.put_line (
+      INSTR ('steven feuerstein'
+           , 'e'
+           , 6));
+   /* Find the location of the first "e" starting from the 6th position from
+      the end of string and counting to the left. */
+   DBMS_OUTPUT.put_line (
+      INSTR ('steven feuerstein'
+           , 'e'
+           , -6));
+   /* Find the location of the 3rd "e" starting from the 6th position from
+      the end of string. */
+   DBMS_OUTPUT.put_line (
+      INSTR ('steven feuerstein'
+           , 'e'
+           , -6
+           , 3));
+END;
+
+/* ejemplo #6 Remove characters from a string. */
+DECLARE
+   a  VARCHAR2 (40)
+      := 'This sentence has too many periods....';
+   b  VARCHAR2 (40) := 'The number 19';
+BEGIN
+   DBMS_OUTPUT.put_line (
+      RTRIM (a, '.'));
+   DBMS_OUTPUT.put_line (
+      LTRIM (
+        b
+      , 'ABCDEFGHIJKLMNOPQRSTUVWXYZ '
+        || 'abcdefghijklmnopqrstuvwxyz'));
+END;
+
+/* ejemplo #7 Remove characters from a string. */
+DECLARE
+   x   VARCHAR2 (30)
+          := '.....Hi there!.....';
+BEGIN
+   DBMS_OUTPUT.put_line (
+      TRIM (LEADING '.' FROM x)); 
+   DBMS_OUTPUT.put_line (
+      TRIM (TRAILING '.' FROM x));
+   DBMS_OUTPUT.put_line (
+      TRIM (BOTH '.' FROM x));
+
+   --The default is to trim 
+   --from both sides
+   DBMS_OUTPUT.put_line (
+      TRIM ('.' FROM x));
+
+   --The default trim character 
+   --is the space:
+   DBMS_OUTPUT.put_line (TRIM (x));
+END;
+
+/* ejemplo #8 Remove characters from a string. */
+BEGIN
+   /* Remove all digits (0-9) 
+      from the string. */
+   DBMS_OUTPUT.put_line (
+      TRANSLATE ('S1t2e3v4e56n'
+               , 'A1234567890'
+               , 'A'));
+END;
+
+fuente: https://blogs.oracle.com/connect/post/working-with-strings#:~:text=To%20declare%20a%20string%20variable,to%20store%20Unicode%20character%20data.

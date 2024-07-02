@@ -1,0 +1,29 @@
+select * from pensiones.codigos
+-- where cod_template = 'CORREO_AJUSTE_CONTABLE'
+where cod_template LIKE '%MAIL-ENDOSOS%'
+
+select * from pensiones.codigos
+where cod_template like '%TR11-RELACION-RIS%'
+order by 2
+
+select * from pensiones.codigos
+where cod_template like '%TC03-COBERTURAS'
+order by 2
+
+select * from pensiones.codigos 
+where cod_template like 'TR07_RELACION_BENEFICIARIOS%' 
+order by 2
+
+
+select POL_PORC_RE
+,NVL(POL_PORC_RE,0)
+,DECODE(NVL(POL_PORC_RE,0), 0,'NO', 'SI') from pensiones.polizas
+where pol_poliza in (524537,677825)
+
+select * from pensiones.codigos
+where cod_template = 'VENTANA-ENDOSO'
+
+insert into pensiones.codigos
+(cod_template,cod_int_num,cod_int_char,cod_ext,cod_vigencia)
+values
+('MAIL-ENDOSOS-BORDES',1,NULL,'isalazarc@ext.confuturo.cl','S')

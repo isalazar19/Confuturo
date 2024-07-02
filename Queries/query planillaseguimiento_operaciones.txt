@@ -1,0 +1,204 @@
+select
+     rownum as numero,
+     datos.fec_recalculo as fec_recalculo,
+     datos.num_poliza as num_poliza,
+     datos.nomb_causante as nomb_causante,
+     datos.rut_causante as rut_causante,
+     datos.inicio_per_pago_vig_recal as inicio_per_pago_vig_recal,
+     datos.origen as origen,
+     datos.usuario_aut as usuario_aut,
+     datos.fecha_aut as fecha_aut,
+     datos.fec_notificacion as fec_notificacion,
+     datos.cob_actual as cob_actual,
+     datos.tipo_endoso as tipo_endoso,
+     datos.tipo_benef_fin as tipo_benef_fin,
+     datos.pension_inicial as pension_inicial,
+     datos.pension_final as pension_final,
+     datos.dif_pen_ref as dif_pen_ref,
+     datos.meses_retro as meses_retro,
+     datos.dif_por_pension as dif_por_pension,
+     datos.fec_envio_notif as fec_envio_notif,
+     datos.caso_borde as caso_borde,
+     datos.caso_especial as caso_especial,
+     datos.periodo as periodo,
+     datos.dbe_producto as producto,
+     datos.dbe_numpoliza as poliza,
+     datos.dbe_id_causante as idcausante,
+     datos.dbe_cobertura as cobertura,
+     datos.dbe_id_benef as idbenef,
+     datos.dbe_periodo as idperiodo,
+     datos.dbe_tipo_endoso as idtipoendoso,
+     datos.dbe_tipobeneficiario as idtipobeneficiario
+    /* HU PR-245 INI */
+     ,DATOS.ES_ESCALONADA AS ES_ESCALONADA
+     ,DATOS.PORC_PEN_ESCALONADA AS PORC_PEN_ESCALONADA
+     ,DATOS.FEC_TERM_ESCALONADA AS  FEC_TERM_ESCALONADA
+
+     ,DATOS.PEN_ESCALONADA_ACT as PEN_ESCALONADA_ACT
+     ,DATOS.PEN_ESCALONADA_NVA as PEN_ESCALONADA_NVA
+    /* HU PR-245 FIN */
+     from
+     (
+      SELECT ROWNUM                                     numero,
+           dpo_fec_recalculo                            fec_recalculo,
+           dpo_numpoliza                                num_poliza,
+           PKG_GAPS_ENDOSOS.F_DATOS_PERSONA(dbe_id_causante, 'NOMBRE') nomb_causante,
+           PKG_GAPS_ENDOSOS.F_DATOS_PERSONA(dbe_id_causante, 'RUT') rut_causante,
+           to_date(decode(nvl(DPO_FEC_RECALCULO,''),
+                  '', NULL,
+                  to_char(add_months(to_date('01/'||to_char(DPO_FEC_RECALCULO,'MM/YYYY'),'DD/MM/YYYY'), 1),'dd/mm/yyyy')
+                 ) , 'DD/MM/YYYY')                          inicio_per_pago_vig_recal,
+           dbe_origen                                       origen,
+           dbe_id_aut_end                                   usuario_aut,
+           to_date(to_char(dbe_date_aut_end,'dd/mm/yyyy'),'dd/mm/yyyy') fecha_aut,
+           dbe_fec_inf_cia                                  fec_notificacion,
+           (SELECT cod_ext FROM pensiones.codigos
+            WHERE cod_template = 'TC03-COBERTURAS'
+               AND cod_int_num = sin_tipo)                  cob_actual,
+           PKG_GAPS_ENDOSOS.F_TIPO_ENDOSO(dbe_tipo_endoso)   tipo_endoso,
+           (SELECT decode(cod_int_num,9,(cod_ext||'(B.Designado)'),cod_ext)
+            FROM pensiones.codigos
+            WHERE cod_template = 'TR07-RELACION-BENEFICIARIOS'
+                AND cod_int_num = ben_relacion )        tipo_benef_fin,
+           nvl(dpo_pns_ref_act,0)                       pension_inicial,
+           nvl(dpo_pns_ref_nva,0)                       pension_final,
+           (nvl(dpo_pns_ref_nva,0) - nvl(dpo_pns_ref_act,0)) dif_pen_ref,
+           decode(sin_tipo,1,NVL(DPO_MES_RETRO,0),null) meses_retro,
+           --NVL(ABS((DPO_POR_PNS_END-DPO_POR_PNS_ORI)),0) dif_por_pension,
+           decode(sin_tipo,1,NVL(ABS((dpo_dif_pcje_pension)),0),null) dif_por_pension,
+           (CASE
+            WHEN
+               (dpo_ind_caso_borde is not null
+                and dpo_fec_notificacion_tecnico is not null)
+                OR
+               (dpo_ind_caso_especial is not null
+                and dpo_fec_notificacion_tecnico is not null)
+            THEN trunc(dpo_fec_notificacion_tecnico)
+            ELSE null
+            END)                            fec_envio_notif,
+           decode(dpo_ind_caso_borde,null,'No','Si') caso_borde,
+           decode(dpo_ind_caso_especial,null,'No',dpo_ind_caso_especial) caso_especial,
+           substr(to_char(dpo_periodo),5,2)||'/'||substr(to_char(dpo_periodo),1,4) periodo,
+           dbe_producto,
+           dbe_numpoliza,
+           dbe_id_causante,
+           dbe_cobertura,
+           dbe_id_benef,
+           dbe_periodo,
+           dbe_tipo_endoso,
+           dbe_tipobeneficiario
+    /* HU PR-245 INI */
+          ,DECODE(NVL(POL_PORC_RE,0), 0,'NO', 'SI')     ES_ESCALONADA
+          ,NVL(POL_PORC_RE,0)                           PORC_PEN_ESCALONADA
+          ,DECODE(NVL(POL_PORC_RE,0), 0,NULL, TO_CHAR(pkg_renta_escalonada.f_calc_fin_renta(POL_FEC_INICIO, POL_MESES_RE),'DD/MM/YYYY')) FEC_TERM_ESCALONADA
+
+          ,pkg_renta_escalonada.f_calc_nueva_pension(decode(dpo_pns_ref_act, 0, 0, dpo_pns_ref_act), POL_PORC_RE, POL_TIPO_RE) as PEN_ESCALONADA_ACT
+          ,pkg_renta_escalonada.f_calc_nueva_pension(decode(dpo_pns_ref_nva, 0, 0, dpo_pns_ref_nva), POL_PORC_RE, POL_TIPO_RE) as PEN_ESCALONADA_NVA
+    /* HU PR-245 FIN */
+    FROM pensiones.datos_pol, pensiones.datos_ben, pensiones.siniestros, pensiones.persnat, pensiones.modificaciones_bnl, pensiones.beneficiarios
+    /* HU PR-245 INI */
+       , PENSIONES.POLIZAS
+    /* HU PR-245 FIN */
+    WHERE dpo_numpoliza = dbe_numpoliza
+       AND dpo_periodo = dbe_periodo
+       AND sin_poliza = dpo_numpoliza
+       AND sin_linea = 3
+       AND sin_producto = DPO_PRODUCTO
+       AND sin_documento = 2
+       AND sin_estado = 11
+       AND nat_id = dpo_id_causante
+       AND dbe_id_benef = ben_beneficiario
+       --AND dpo_numpoliza = p_poliza
+       AND dpo_periodo = 202310--p_per
+       AND ben_linea = sin_linea
+       AND ben_producto = sin_producto
+       AND ben_documento = sin_documento
+       AND ben_poliza = sin_poliza
+       AND ben_causante = dpo_id_causante
+       AND ben_beneficiario = dbe_id_benef
+       AND mod_periodo = dpo_periodo
+       AND mod_ben = dbe_id_benef
+       AND mod_poliza = dpo_numpoliza
+       AND mod_tipo_modif = dbe_tipo_endoso
+    /* HU PR-245 INI */
+       AND POL_linea = 3
+       AND POL_producto = DPO_PRODUCTO
+       AND POL_documento = 2
+       AND POL_poliza = dpo_numpoliza
+       AND POL_CONTRATANTE = dpo_id_causante
+    /* HU PR-245 FIN */
+
+     UNION
+     select rownum as numero,
+     mod_date_mod as fec_recalculo,
+     end_poliza as num_poliza,
+     PKG_GAPS_ENDOSOS.F_DATOS_PERSONA(mod_asegurado, 'NOMBRE') nomb_causante,
+     PKG_GAPS_ENDOSOS.F_DATOS_PERSONA(mod_asegurado, 'RUT') rut_causante,
+     to_date(to_char(add_months(to_date('01/'||substr(to_char(MOD_PERIODO),5,2)||'/'||substr(to_char(MOD_PERIODO),1,4),'DD/MM/YYYY'), 0),'dd/mm/yyyy')
+              , 'DD/MM/YYYY')  as inicio_per_pago_vig_recal,
+     'RPRE' as origen,
+     'PASAIB00' as usuario_aut,
+     mod_date_mod as fecha_aut,
+     null as fec_notificacion,
+     (SELECT cod_ext FROM pensiones.codigos
+      WHERE cod_template = 'TC03-COBERTURAS'
+      AND cod_int_num = (select min(sin_tipo)
+                         from pensiones.siniestros
+                         where sin_poliza=end_poliza)) as cob_actual,
+     PKG_GAPS_ENDOSOS.F_TIPO_ENDOSO(34) as tipo_endoso,
+     (SELECT decode(cod_int_num,9,(cod_ext||'(B.Designado)'),cod_ext)
+      FROM pensiones.codigos
+      WHERE cod_template = 'TR07-RELACION-BENEFICIARIOS'
+      AND cod_int_num = 0 ) as tipo_benef_fin,
+     nvl(end_prima_ant,0) as pension_inicial,
+     nvl(end_prima_nue,0) as pension_final,
+     (nvl(end_prima_nue,0) - nvl(end_prima_ant,0))  as dif_pen_ref,
+     null as meses_retro,
+     null as dif_por_pension,
+     null as fec_envio_notif,
+     'No' as caso_borde,
+     'No' as caso_especial,
+     substr(to_char(mod_periodo),5,2)||'/'||substr(to_char(mod_periodo),1,4) as periodo,
+     mod_producto as producto,
+     mod_poliza as poliza,
+     mod_asegurado as idcausante,
+     mod_cobertura as cobertura,
+     mod_asegurado as idbenef,
+     mod_periodo as idperiodo,
+     mod_tipo_modif as idtipoendoso,
+     null as idtipobeneficiario
+    /* HU PR-245 INI */
+          ,DECODE(NVL(POL_PORC_RE,0), 0,'NO', 'SI')     ES_ESCALONADA
+          ,NVL(POL_PORC_RE,0)                           PORC_PEN_ESCALONADA
+          ,DECODE(NVL(POL_PORC_RE,0), 0,NULL, TO_CHAR(pkg_renta_escalonada.f_calc_fin_renta(POL_FEC_INICIO, POL_MESES_RE),'DD/MM/YYYY')) FEC_TERM_ESCALONADA
+
+          ,pkg_renta_escalonada.f_calc_nueva_pension(decode(end_prima_ant, 0, 0, end_prima_ant), POL_PORC_RE, POL_TIPO_RE) as PEN_ESCALONADA_ACT
+          ,pkg_renta_escalonada.f_calc_nueva_pension(decode(end_prima_nue, 0, 0, end_prima_nue), POL_PORC_RE, POL_TIPO_RE) as PEN_ESCALONADA_NVA
+    /* HU PR-245 FIN */
+     from pensiones.catmod
+      ,pensiones.modificaciones
+      ,pensiones.endosos
+    /* HU PR-245 INI */
+      ,PENSIONES.POLIZAS
+    /* HU PR-245 FIN */
+      where mod_linea      = end_linea
+      and mod_producto   = end_producto
+      and mod_documento  = end_documento
+      and mod_poliza     = end_poliza
+      and mod_asegurado  = end_asegurado
+      and mod_linea      = 3
+      and ctm_tipo_modif = mod_tipo_modif
+      and mod_nro_endoso = end_nro_endoso
+      and mod_correl     = end_nro_modif
+      and end_periodo     = 202310
+      and ctm_tipo_modif = 34
+    /* HU PR-245 INI */
+       AND POL_linea = 3
+       AND POL_producto = END_PRODUCTO
+       AND POL_documento = 2
+       AND POL_poliza = END_POLIZA
+       AND POL_CONTRATANTE = END_ASEGURADO
+    /* HU PR-245 FIN */
+       --order by dpo_numpoliza asc, mod_periodo asc, mod_correl asc
+       order by 3 asc
+       )datos;

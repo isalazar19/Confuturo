@@ -1,0 +1,7 @@
+select * from pensiones.codigos
+where cod_template like '%TR11-RELACION-RIS%'
+order by 2
+
+select * from pensiones.codigos 
+where cod_template like 'TR07_RELACION_BENEFICIARIOS%' 
+order by 2

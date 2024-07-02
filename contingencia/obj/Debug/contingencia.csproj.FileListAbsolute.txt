@@ -1,0 +1,13 @@
+C:\isalazar\NET\contingencia\bin\Debug\contingencia.exe.config
+C:\isalazar\NET\contingencia\bin\Debug\contingencia.exe
+C:\isalazar\NET\contingencia\bin\Debug\contingencia.pdb
+C:\isalazar\NET\contingencia\bin\Debug\ClosedXML.dll
+C:\isalazar\NET\contingencia\bin\Debug\contingencia.Data.dll
+C:\isalazar\NET\contingencia\bin\Debug\DocumentFormat.OpenXml.dll
+C:\isalazar\NET\contingencia\bin\Debug\contingencia.Data.pdb
+C:\isalazar\NET\contingencia\bin\Debug\ClosedXML.xml
+C:\isalazar\NET\contingencia\obj\Debug\contingencia.csprojAssemblyReference.cache
+C:\isalazar\NET\contingencia\obj\Debug\contingencia.csproj.CoreCompileInputs.cache
+C:\isalazar\NET\contingencia\obj\Debug\contingencia.csproj.CopyComplete
+C:\isalazar\NET\contingencia\obj\Debug\contingencia.exe
+C:\isalazar\NET\contingencia\obj\Debug\contingencia.pdb

@@ -1,0 +1,2 @@
+insert into CERTIF_RENTA_MENU (CRM_MENUID, CRM_DESCRIPCION, CRM_IDPADRE, CRM_ORDEN, CRM_FECCREACION, CRM_USUARIOCREACION, CRM_FECMODIFICACION, CRM_USUARIO, CRM_ICONO, CRM_URL)
+values (18, 'Data Traspasada desde SIP', 12, 6, to_date('17-06-2024', 'dd-mm-yyyy'), 'ISALAZARC', to_date('17-06-2024', 'dd-mm-yyyy'), 'ISALAZARC', null, '~/REPORTES/DataTraspasadaSIP.aspx');

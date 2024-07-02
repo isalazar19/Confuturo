@@ -1,0 +1,41 @@
+(1)select * from pensiones.polizas where pol_poliza=677825;
+
+(2)select asaf_linea,asaf_producto,asaf_documento,asaf_poliza,asaf_asegurado from pensiones.asegafp where asaf_poliza=677825; (1)
+
+(3)select bnf_beneficiario,BNF_LINEA,BNF_PRODUCTO,BNF_DOCUMENTO,BNF_POLIZA,BNF_CAUSANTE,BNF_COBERTURA from pensiones.BENEFICIOS where BNF_POLIZA=677825; (2)
+
+(4)select * from pensiones.beneficiarios where ben_poliza=677825; (3 BNF_POLIZA)
+
+(5)select * from pensiones.endosos where end_asegurado=1478689; (3 BNF_CAUSANTE)
+
+(6)select PERSNAT_A.nat_numrut ||'-'||PERSNAT_A.nat_dv rut_tit ,
+       PERSNAT_A.nat_nomb persnat_nombre, PERSNAT_a.nat_fec_muerte fec_muerte
+from pensiones.PERSNAT PERSNAT_A where nat_id=1478689; (5)
+
+(7)select PERSNAT_B.nat_numrut ||'-'|| PERSNAT_B.nat_dv rut_ben, 
+                PERSNAT_B.NAT_NOMBRE || ' ' ||  PERSNAT_B.NAT_AP_PAT || ' ' || PERSNAT_B.NAT_AP_MAT nombre_ben,
+              PERSNAT_b.nat_fec_nacim fec_nacim ,          
+          PERSNAT_b.nat_fec_matr_fc fec_matri
+from pensiones.PERSNAT PERSNAT_B where nat_id=1476599;(3 BNF_BENEFICIARIO)
+
+
+(8)select mod_linea,mod_producto,mod_documento,mod_poliza,mod_asegurado,mod_cobertura,mod_ben,mod_periodo,mod_tipo_modif from pensiones.modificaciones where mod_correl=2266970; (5 end_nro_modif)
+
+(9)select * from pensiones.catmod where ctm_tipo_modif =60; (8 mod_tipo_modif)
+
+(10)select cob_descripcion from pensiones.COBERTURA where cob_codigo=8; (3 BNF_COBERTURA)
+
+(11)
+select * from pensiones.datos_ben
+where dbe_linea=3
+and dbe_producto = 603
+and dbe_documento = 2 
+and dbe_numpoliza = 677825
+and dbe_id_causante = 1476599
+and dbe_cobertura = 8 
+and dbe_id_benef = 1478689
+and dbe_periodo =  202311
+and dbe_tipo_endoso = 60
+
+
+(12)select * from pensiones.codigos where cod_int_char='IN' and cod_template = 'VENTANA-ENDOSO';  (11 dbe_ind_vtna_endoso)

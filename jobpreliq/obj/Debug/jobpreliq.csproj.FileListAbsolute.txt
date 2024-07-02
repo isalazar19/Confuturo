@@ -1,0 +1,6 @@
+C:\isalazar\NET\jobpreliq\bin\Debug\jobpreliq.exe.config
+C:\isalazar\NET\jobpreliq\bin\Debug\jobpreliq.exe
+C:\isalazar\NET\jobpreliq\bin\Debug\jobpreliq.pdb
+C:\isalazar\NET\jobpreliq\obj\Debug\jobpreliq.csproj.CoreCompileInputs.cache
+C:\isalazar\NET\jobpreliq\obj\Debug\jobpreliq.exe
+C:\isalazar\NET\jobpreliq\obj\Debug\jobpreliq.pdb

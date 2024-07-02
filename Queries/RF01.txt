@@ -1,0 +1,137 @@
+507946
+
+--DW 
+/*select * from sol_endoso_incl_benef where inc_poliza=507946; */
+
+/*select
+       '' marca,
+       inc_poliza,
+       inc_id_beneficiario,
+       inc_estado,
+       inc_relacion,
+       inc_tipo,
+       inc_nombre_solicitante,
+       INC_RUT_SOLICITANTE || '-' || INC_DV_SOLICITANTE as rut_solicitante,
+       (select asaf_afp
+        from pensiones.asegafp
+        where asaf_afp is not null
+        and asaf_poliza = inc_poliza
+        and asaf_documento = 2) as codigo_afp,
+        (select trim(cod_ext)
+        from pensiones.asegafp,
+             pensiones.codigos
+        where asaf_afp is not null
+        and asaf_poliza = inc_poliza
+        and asaf_documento = 2
+        and asaf_afp = cod_int_num
+        and cod_template like 'TA02_AFP'
+        and cod_vigencia = 'S') as glosa_afp_original,
+      to_char(inc_fec_tramite_afp,'dd/mm/yyyy') as fecha_afp,
+      to_char(inc_fec_tramite_cia,'dd/mm/yyyy') as fecha_compania,
+      to_char(inc_fec_solicitud,'dd/mm/yyyy') as fecha_solicitud,
+      to_char(inc_fec_toma_con_cia,'dd/mm/yyyy') as fecha_toma_con_cia,
+      inc_corr_id,
+    inc_rut_beneficiario,
+      (to_char(inc_rut_beneficiario)||'-'||inc_dv_beneficiario) as rut_de_beneficiario,
+    inc_region,
+    inc_cod_prv_ta,
+    inc_cod_com_ta,
+    inc_frm_pago,
+    inc_banco,
+    inc_plan_isapre,
+    inc_invalido,
+    inc_grupo,
+    inc_grp_pag,
+    inc_sexo,
+    inc_direccion,
+    inc_telefono_1,
+    inc_e_mail,
+    inc_suc_pago,
+    inc_cta_bco,
+    inc_suc_bco,
+INC_USUARIO_EJEC,
+INC_SUCURSAL_EJEC,
+(select trim(hafp_descripcion)
+            from pensiones.asegafp,
+                    pensiones.HOMO_AFP_PWEB
+           where asaf_afp is not null
+           and asaf_poliza = inc_poliza
+           and asaf_documento = 2
+           and asaf_afp = to_number(trim(hafp_cod))
+           and hafp_estado = 'V') as glosa_afp
+from pensiones.sol_endoso_incl_benef 
+where inc_estado = 3
+and inc_relacion = 3
+order by fecha_toma_con_cia asc*/
+
+/*update pensiones.SOL_ENDOSO_INCL_BENEF
+set inc_estado = 3
+where inc_poliza = 507946--:w_inclu_benef_visacion.il_poliza
+and inc_corr_id = 183--:w_inclu_benef_visacion.il_corr_id
+and inc_estado =  1
+and inc_id_beneficiario = 1479223;--:il_id_persona_ben;*/
+
+
+***********************************************************************************
+
+/*select * from sol_endoso_excl_benef where exc_poliza=13977; */
+
+/*
+select
+       '' marca,
+       exc_poliza,
+       exc_id_beneficiario,
+       exc_relacion,
+       exc_tipo_cert,
+       exc_tipo_causal,
+       EXC_NOMBRE_SOLICITANTE,
+       EXC_RUT_SOLICITANTE || '-' || EXC_DV_SOLICITANTE as rut_solicitante,
+       (select asaf_afp
+        from pensiones.asegafp
+        where asaf_afp is not null
+        and asaf_poliza = exc_poliza
+        and asaf_documento = 2) as codigo_afp,
+        (select trim(cod_ext)
+        from pensiones.asegafp,
+             pensiones.codigos
+        where asaf_afp is not null
+        and asaf_poliza = exc_poliza
+        and asaf_documento = 2
+        and asaf_afp = cod_int_num
+        and cod_template like 'TA02_AFP'
+        and cod_vigencia = 'S') as glosa_afp_original,
+	    to_char(exc_fec_tramite_afp,'dd/mm/yyyy') as fecha_afp,
+	    to_char(exc_fec_tramite_cia,'dd/mm/yyyy') as fecha_compania,
+	    to_char(exc_fec_evento,'dd/mm/yyyy') as fecha_evento,
+	    to_char(exc_fec_recepcion,'dd/mm/yyyy') as fecha_recepcion,
+	    to_char(exc_fec_emision,'dd/mm/yyyy') as fecha_emision,
+	    exc_corr_id,
+	    (select trim(cod_ext) 
+		 from pensiones.codigos 
+		 where trim(cod_template) like 'TE11-ESTADOS-TRANSACC'
+		 and cod_int_num = exc_estado) as glosa_estado_transaccion,
+		(select trim(cod_ext)  
+		 from pensiones.codigos 
+		 where trim(cod_template) like 'TE12-TIPO-CERT-END-INC-BEN'
+		 and cod_int_num = exc_tipo_cert) as glosa_tipo_certificado,
+		(select trim(cod_ext)  
+		 from pensiones.codigos 
+		 where trim(cod_template) like 'TE13-TIPO-CAUSAL-END-INC-BEN'
+		 and cod_int_num = exc_tipo_causal) as glosa_tipo_causal,
+		 exp_sucursal_ejec,
+		 exp_usuario_ejec,
+		 (select trim(hafp_descripcion)
+            from pensiones.asegafp,
+                    pensiones.HOMO_AFP_PWEB
+           where asaf_afp is not null
+           and asaf_poliza = exc_poliza
+           and asaf_documento = 2
+           and asaf_afp = to_number(trim(hafp_cod))
+           and hafp_estado = 'V') as glosa_afp,
+		  EXC_EMAIL_SOLICITANTE,
+		  EXC_TELEFONO_SOLICITANTE
+from pensiones.sol_endoso_excl_benef 
+where exc_estado = 3
+and exc_relacion = :p_linea
+order by exc_fec_tramite_cia asc
+*/

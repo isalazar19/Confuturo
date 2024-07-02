@@ -1,0 +1,3 @@
+/*TIPOS DE ENDOSOS */
+select * from pensiones.codigos
+where cod_template LIKE 'TE06_TIPO_ENDOSOS%'

@@ -1,0 +1,484 @@
+CREATE OR REPLACE PROCEDURE "SP_PRELIQ_GEN_AUT_ALL"
+IS
+BEGIN
+
+   DECLARE
+        v_error              NUMBER;
+        v_sqlerrm            VARCHAR2(2000);
+        v_recipient          VARCHAR2(80) := 'confuturo@confuturo.cl';
+        v_subject            VARCHAR2(80) := 'Generacion de preliquidacion ';
+        v_rcpt_array         DBMS_SQL.varchar2_table;
+        v_text               VARCHAR(200);
+        v_cant_registros     NUMBER := 0;
+
+
+        v_per_str_preliq          VARCHAR(10);
+        v_per_preliq              NUMBER := 0;
+        v_per_ipc_preliq          NUMBER := 0;
+        v_per_ipc_val_preliq      NUMBER(7,3) := 0;
+        v_existe_ipc_insert       NUMBER := 0;
+        v_existe_uf_insert        NUMBER := 0;
+        v_ipc_insertado           BOOLEAN := false;
+        v_factor_calculo          NUMBER(20,15) := 0;
+        v_uf_insertada            BOOLEAN := false;
+        v_uf_dia_9                NUMBER(15,5) := 0;
+        v_uf_calculada            NUMBER(15,5) := 0;
+        v_uf_anterior             NUMBER(15,5) := 0;
+        v_base                    NUMBER(15,5) := 0;
+        v_exponente               NUMBER(15,5) := 0;
+        v_potencia                NUMBER(15,5) := 0;
+        v_dias                    NUMBER(15,5) := 0;
+        v_fec_cont                DATE;
+        v_fec_cont_tope           DATE;
+        v_dia                     NUMBER;
+        v_fec_liq                 DATE;
+        v_fec_liq_desde           DATE;
+        v_fec_liq_hasta           DATE;
+        v_fec_cie                 DATE;
+        v_valida_paramet          BOOLEAN := false;
+        v_valida_paramet_prmliq   BOOLEAN := false;
+        v_existe_prmliqrv         NUMBER := 0;
+        v_fec_liq_hoy             NUMBER;
+        v_fec_liq_ult_aut         NUMBER;
+        v_fec_cie_hoy             NUMBER;
+        v_ok_preliquidar          BOOLEAN := false;
+        v_cant_cony_post_sin      NUMBER := 0;
+        v_ok_generar_batch        BOOLEAN := false;
+        v_i_del                   NUMBER := 0;
+        v_i_linea                 NUMBER;
+        v_param                   VARCHAR2(20) := '';
+        v_password                VARCHAR2(1000) := 'pensiones2020';
+        v_nombre_aplicacion       VARCHAR2(100) := '';
+        ll_existe_aplicacion      NUMBER := 0;
+        v_correl_batchslid        NUMBER := 0;
+        v_pantalla                VARCHAR2(50) := '';
+        v_tipproc                 NUMBER := 0;
+        v_ok_liberar_batch        BOOLEAN := false;
+        v_es_dia_preliq           NUMBER := 0;
+
+
+
+begin
+
+      --to_date('01/'||to_char(sysdate,'mm/yyyy'),'dd/mm/yyyy'),
+      --to_date(to_char(trunc(sysdate),'dd/mm/yyyy'),'dd/mm/yyyy')
+      select NVL(F_DIAS_HABILES_PRELIQ(to_date('01/'||to_char(sysdate,'mm/yyyy'),'dd/mm/yyyy'),
+                                       to_date(to_char(trunc(sysdate),'dd/mm/yyyy'),'dd/mm/yyyy')),0)
+      into v_es_dia_preliq
+      from dual;
+      --forzar una fecha para ejecuatar manualmente el job
+      --select NVL(F_DIAS_HABILES_PRELIQ(to_date('01/'||'01'||to_char(sysdate,'yyyy'),'dd/mm/yyyy'),
+      --                           to_date('04/'||'01'||to_char(sysdate,'yyyy'),'dd/mm/yyyy')),0)
+      --into v_es_dia_preliq
+      --from dual;
+
+
+      if v_es_dia_preliq = 1 then
+
+       --validacion parametros liquidacion
+       --valida cierre de mes
+       select prm_fec_hasta + 1 , prm_fec_desde, prm_fec_hasta
+       into v_fec_liq, v_fec_liq_desde, v_fec_liq_hasta
+       from pensiones.paramet_fechas
+       where prm_tipo_tabla='RVLIQ';
+
+       select prm_fec_desde
+       into v_fec_cie
+       from pensiones.paramet_fechas
+       where prm_tipo_tabla='FCIEI';
+
+         if v_fec_liq = v_fec_cie then
+            v_valida_paramet := false;
+         else
+            v_valida_paramet := true;
+         end if;
+       --valida que no se haya comenzado liquidacion
+       if v_fec_liq_desde > v_fec_liq_hasta then
+            v_valida_paramet := false;
+       else
+            v_valida_paramet := true;
+       end if;
+
+       --se valida que hayan ingresado los parametros
+       --si no se encuentra registro en prmliqrv
+       --usuario debe ingresar esto vía mantenedor en SIP (pensiones)
+       select nvl(count(*),0)
+       into v_existe_prmliqrv
+       from pensiones.prmliqrv
+       where plq_per = (select to_number(to_char(add_months(prm_fec_hasta,1),'YYYYMM'))
+                        from pensiones.paramet_fechas
+                        where prm_tipo_tabla='RVLIQ');
+       if v_existe_prmliqrv <= 0 then
+            v_valida_paramet_prmliq := false;
+       else
+            v_valida_paramet_prmliq := true;
+       end if;
+
+    if v_valida_paramet = true and v_valida_paramet_prmliq = true then
+
+       --obtiene proximo periodo a preliquidar
+       select to_char(add_months(prm_fec_hasta,1),'mm/yyyy'),
+              to_number(to_char(add_months(prm_fec_hasta,1),'yyyymm'))
+       into   v_per_str_preliq, v_per_preliq
+       from   pensiones.paramet_fechas
+       where  prm_tipo_tabla = 'RVLIQ';
+
+       /*--actualiza parametfechas a periodo a preliquidar (Powerbuilder "Fecha Normal")
+       begin
+         update paramet_fechas
+         set prm_fec_desde = add_months(prm_fec_hasta,1)
+         where prm_tipo_tabla='RVLIQ';
+         commit;
+       EXCEPTION WHEN OTHERS THEN
+          v_sqlerrm := SubStr(sqlerrm,1,2000);
+          v_error := -1;
+       END;*/
+
+       --ingreso de ipc de preliquidacion con valor igual a
+       --ultima liquidacion oficial autorizada
+       select to_number(to_char(add_months(to_date(max(ipc_per),'yyyymm'),1),'yyyymm'))
+       into v_per_ipc_preliq
+       from gensegur.ipc;
+
+       select ipc_valor
+       into v_per_ipc_val_preliq
+       from gensegur.ipc
+       where ipc_per = (select max(ultper.ipc_per)
+                        from gensegur.ipc ultper
+                        );
+
+       select nvl(count(*),0)
+       into v_existe_ipc_insert
+       from gensegur.ipc
+       where ipc_per = v_per_ipc_preliq;
+
+       begin
+         if v_per_ipc_preliq > 0 and v_per_ipc_val_preliq > 0 and v_existe_ipc_insert = 0 and v_per_ipc_preliq <= v_per_preliq then
+           insert into gensegur.ipc
+           values (v_per_ipc_preliq, v_per_ipc_val_preliq);
+           commit;
+           v_ipc_insertado := true;
+         elsif v_existe_ipc_insert > 0 and v_per_ipc_preliq < v_per_preliq then
+           v_ipc_insertado := true;
+         else
+           v_ipc_insertado := false;
+         end if;
+       EXCEPTION WHEN OTHERS THEN
+          v_ipc_insertado := false;
+          v_sqlerrm := SubStr(sqlerrm,1,2000);
+          v_error := -1;
+       END;
+
+       --generación de uf para preliquidacion en base a ipc ingresado
+       --valida si esta insertado
+         SELECT nvl(count(*),0)
+         into v_existe_uf_insert
+         FROM gensegur.VALORMONEDA
+         WHERE VALORMONEDA.VMON_MONEDA = 1
+         AND VALORMONEDA.VMON_FECHA >=
+            (select to_date('10/'||to_char(add_months(prm_fec_hasta,1),'mm/yyyy'),'dd/mm/yyyy')
+             from   pensiones.paramet_fechas
+             where  prm_tipo_tabla = 'RVLIQ')
+         AND VALORMONEDA.VMON_FECHA <=
+             (select to_date('09/'||to_char(add_months(prm_fec_hasta,2),'mm/yyyy'),'dd/mm/yyyy')
+              from   pensiones.paramet_fechas
+              where  prm_tipo_tabla = 'RVLIQ')
+         ORDER BY VALORMONEDA.VMON_FECHA ASC;
+       --con ipc insertado y no preexistencia de uf se genera proceso generacion uf
+       if (v_ipc_insertado = true and (v_existe_uf_insert = 0 or v_existe_uf_insert is null)) then
+          --factor de calculo
+          select round(nvl(
+          (((
+          (select nvl(ipc_valor,0)
+          from gensegur.ipc
+          where ipc_per = (select max(ultper.ipc_per)
+                           from gensegur.ipc ultper
+                          ))/
+          (select nvl(ipc_valor,0)
+          from gensegur.ipc
+          where ipc_per = (select to_number(to_char(add_months(to_date(max(ultper.ipc_per),'yyyymm'),-1),'yyyymm'))
+                           from gensegur.ipc ultper
+                          ))
+          )*100)-100),0),1)
+          into v_factor_calculo
+          from dual;
+          if v_factor_calculo is null then
+            v_factor_calculo := 0;
+            v_uf_insertada := false;
+          end if;
+
+          --obtiene uf del día 09 ultimo mes generado
+          select nvl(vmon_valor,0)
+          into v_uf_dia_9
+          from gensegur.valormoneda
+          where vmon_fecha  =
+          (select to_date('09/'||to_char(add_months(prm_fec_hasta,1),'mm/yyyy'),'dd/mm/yyyy')
+                        from   pensiones.paramet_fechas
+                        where  prm_tipo_tabla = 'RVLIQ')
+          and vmon_moneda = 1;
+
+          v_base := (1+(v_factor_calculo/100));
+
+          select trunc((select to_date('09/'||to_char(add_months(prm_fec_hasta,2),'mm/yyyy'),'dd/mm/yyyy')
+                        from   pensiones.paramet_fechas
+                        where  prm_tipo_tabla = 'RVLIQ'))-
+                 trunc((select to_date('09/'||to_char(add_months(prm_fec_hasta,1),'mm/yyyy'),'dd/mm/yyyy')
+                        from   pensiones.paramet_fechas
+                        where  prm_tipo_tabla = 'RVLIQ'))
+          into v_dias
+          from dual;
+
+          v_exponente := (1 / v_dias);
+
+          select power(v_base, v_exponente)
+          into v_potencia
+          from dual;
+
+          select trunc((select to_date('09/'||to_char(add_months(prm_fec_hasta,1),'mm/yyyy'),'dd/mm/yyyy')
+                        from   pensiones.paramet_fechas
+                        where  prm_tipo_tabla = 'RVLIQ'))+1,
+                 trunc((select to_date('09/'||to_char(add_months(prm_fec_hasta,1),'mm/yyyy'),'dd/mm/yyyy')
+                        from   pensiones.paramet_fechas
+                        where  prm_tipo_tabla = 'RVLIQ'))+1
+          into   v_fec_cont, v_fec_cont_tope
+          from   dual;
+
+          WHILE (v_fec_cont < (v_fec_cont_tope + v_dias))
+          LOOP
+              v_dia := to_number(to_char(v_fec_cont,'DD'));
+              If (v_dia = 10) Then
+                v_uf_calculada := v_potencia * v_uf_dia_9;
+                v_uf_anterior  := v_uf_calculada;
+                v_uf_calculada := round(v_uf_calculada,2);
+              Else
+                v_uf_calculada := v_potencia * v_uf_anterior;
+                v_uf_anterior  := v_uf_calculada;
+                v_uf_calculada := round(v_uf_calculada,2);
+              End if;
+
+              begin
+                    insert into gensegur.valormoneda
+                    (vmon_rst, vmon_moneda, vmon_fecha, vmon_valor)
+                    values (1, 1, v_fec_cont, v_uf_calculada);
+              EXCEPTION WHEN OTHERS THEN
+                    rollback;
+                    v_uf_insertada := false;
+                    v_sqlerrm := SubStr(sqlerrm,1,2000);
+                    v_error := -1;
+              END;
+
+              v_fec_cont := v_fec_cont + 1;
+          END LOOP;
+          commit;
+          v_uf_insertada := true;
+
+       end if;
+
+       --validaciones previo a generar batch de preliquidacion
+       select to_number(to_char(add_months(prm_fec_hasta,1),'YYYYMM')),
+              to_number(to_char(prm_fec_hasta,'YYYYMM'))
+       into v_fec_liq_hoy, v_fec_liq_ult_aut
+       from pensiones.paramet_fechas
+       where prm_tipo_tabla='RVLIQ';
+
+       select to_number(to_char(add_months(prm_fec_desde ,-1),'YYYYMM'))
+       into v_fec_cie_hoy
+       from pensiones.paramet_fechas
+       where prm_tipo_tabla='FCIEI';
+
+       if v_fec_liq_ult_aut = v_fec_cie_hoy then
+         v_ok_preliquidar := false;
+       elsif v_fec_liq_hoy < v_fec_cie_hoy then
+         v_ok_preliquidar := false;
+       elsif ((v_fec_liq_hoy < v_fec_cie_hoy) and (v_fec_liq_hoy > v_fec_liq_ult_aut)) then
+         v_ok_preliquidar := false;
+       elsif v_existe_prmliqrv <= 0 then
+         v_ok_preliquidar := false;
+       else
+         v_ok_preliquidar := true;
+       end if;
+
+       if v_ok_preliquidar = true and v_ipc_insertado = true and v_uf_insertada = true then
+         --validacion de activacion previa de conyuges post poliza
+         SELECT nvl(count(*),0)
+         INTO v_cant_cony_post_sin
+         FROM PENSIONES.BENEFICIARIOS,
+              PENSIONES.CERTPER,
+              PENSIONES.PERSNAT A,
+              PENSIONES.PERSNAT B
+         WHERE BEN_LINEA = 3
+         AND BEN_DOCUMENTO = 2
+         AND BEN_RELACION = 4
+         AND BEN_IND_DER_RE = 1
+         and CEP_NAT = BEN_BENEFICIARIO
+         AND CEP_TIP = 2
+         AND A.NAT_ID = BEN_CAUSANTE
+         AND B.NAT_ID = BEN_BENEFICIARIO
+         AND A.NAT_FEC_MUERTE IS NULL
+         AND B.NAT_FEC_MUERTE IS NULL
+         AND to_number(to_char(add_months(cep_fec_ini_vig, 38),'yyyymm')) <= v_per_preliq;  /*periodo preliq */
+
+          if v_cant_cony_post_sin > 0 then
+              v_ok_generar_batch := false;
+              begin
+              --Recipiente de direcciones
+              v_Rcpt_array(1)  := 'fortizs.externo@confuturo.cl';
+              v_Rcpt_array(2)  := 'jguerram@confuturo.cl';
+              v_Rcpt_array(3)  := 'rrubiod@confuturo.cl';
+              v_Rcpt_array(4)  := 'jvillalobosf@confuturo.cl';
+              v_Rcpt_array(5)  := 'gcastror@confuturo.cl';
+              v_Rcpt_array(6)  := 'promerov@confuturo.cl';
+
+              v_text := 'Preliquidacion no fue generada para periodo : '||to_char(v_per_preliq)||' (Hay conyuges post poliza por activar).';
+
+                 PS_ENVIA_CORREO_CF(v_subject,
+                                    v_rcpt_array,
+                                    v_recipient,
+                                    v_text);
+            end;
+
+          elsif v_cant_cony_post_sin <= 0 or v_cant_cony_post_sin is null then
+              v_ok_generar_batch := true;
+          end if;
+
+          if v_ok_generar_batch = true then
+             v_i_del := 1;
+             v_i_linea := 1;
+             v_param := to_char(v_per_preliq)||'01'||lpad(to_char(v_i_del),1,'0')||lpad(to_char(v_i_linea),2,'0');
+             select f_preliq_encripta_01(v_password)
+             into v_password from dual;
+
+             v_nombre_aplicacion := upper('pensiones');
+             select nvl(count(*),0)
+             into ll_existe_aplicacion
+             from gensegur.batchapli
+             where bapli_nombre = v_nombre_aplicacion;
+
+             if ll_existe_aplicacion > 0 then
+
+               select batchslid.nextval
+               into v_correl_batchslid
+               from dual;
+
+               insert into batchprcs(bprcs_correl, bprcs_proc, bprcs_user,
+               bprcs_fecha_sol, bprcs_estado, bprcs_passwd, bprcs_apli)
+               values(v_correl_batchslid, upper('RBLQS10'), user,
+               sysdate, 1, v_password, v_nombre_aplicacion);
+               commit;
+
+               insert into batchprgs(bprgs_correl, bprgs_secuencia, bprgs_proceso,
+               bprgs_estado, bprgs_param, bprgs_programa)
+               (select v_correl_batchslid, bprgp_secuencia, bprgp_proc,
+                1, v_param, bprgp_programa
+                from gensegur.batchprgp
+                where bprgp_proc  = upper('RBLQS10')
+                and bprgp_apli = upper(v_nombre_aplicacion));
+                commit;
+
+                select bproc_pantalla, bproc_tipproc
+                into v_pantalla, v_tipproc
+                from gensegur.batchproc
+                where bproc_id  = upper('RBLQS10')
+                and bproc_apli = upper(v_nombre_aplicacion);
+
+                if v_tipproc = 1 then
+                  v_ok_liberar_batch := false;
+                else
+                  v_ok_liberar_batch := true;
+                end if;
+
+                if v_ok_liberar_batch = true then
+                  --liberacion de batch
+		                insert into pensiones.preliqrv
+                    (plqr_per, plqr_id_batch, plqr_id_program, plqr_fec_ejec)
+                    values(v_per_preliq, v_correl_batchslid, upper('RBLQS10'), sysdate);
+                  commit;
+                  /*SELECT INS_COD_CORRELATIVO
+                        ,INS_PROCESO
+                        ,PRC_DESCRIPCION
+                        ,INS_USUARIO
+                        ,INS_TIMESTAMP
+                        ,INS_ESTADO
+                        ,' ' Marca
+                   FROM ADMBATCH.ABATCH_INSCRIPCIONES, ADMBATCH.ABATCH_PROCESOS
+                   WHERE PRC_APLICACION ='PENSIONES'
+                   AND PRC_CODIGO = INS_PROCESO
+                   AND INS_PROCESO = 'RBLQS10'
+                   --AND INS_USUARIO = user
+                   AND INS_TIMESTAMP >= to_date('30/12/2019','dd/mm/yyyy')
+                   AND trunc(INS_TIMESTAMP) = trunc(sysdate)
+                   and ins_cod_correlativo = v_correl_batchslid
+                   ORDER BY INS_COD_CORRELATIVO DESC;*/
+                    admbatch.pkg_admbatch.prc_JobEjecutarProceso
+                    (v_correl_batchslid,'pensiones','PENSIONES');
+                    --execute ADMBATCH_1;
+
+
+                    begin
+                    --Recipiente de direcciones
+                    v_Rcpt_array(1)  := 'fortizs.externo@confuturo.cl';
+                    v_Rcpt_array(2)  := 'jguerram@confuturo.cl';
+                    v_Rcpt_array(3)  := 'rrubiod@confuturo.cl';
+                    v_Rcpt_array(4)  := 'jvillalobosf@confuturo.cl';
+                    v_Rcpt_array(5)  := 'gcastror@confuturo.cl';
+                    v_Rcpt_array(6)  := 'promerov@confuturo.cl';
+
+                    v_text := 'Preliquidacion fue solicitada y liberada para periodo : '||to_char(v_per_preliq)||' .';
+
+                    PS_ENVIA_CORREO_CF(v_subject,
+                                       v_rcpt_array,
+                                       v_recipient,
+                                       v_text);
+                    end;
+
+
+                end if;
+
+
+             end if;
+
+          end if;
+        else
+           begin
+              --Recipiente de direcciones
+              v_Rcpt_array(1)  := 'fortizs.externo@confuturo.cl';
+              v_Rcpt_array(2)  := 'jguerram@confuturo.cl';
+              v_Rcpt_array(3)  := 'rrubiod@confuturo.cl';
+              v_Rcpt_array(4)  := 'jvillalobosf@confuturo.cl';
+              v_Rcpt_array(5)  := 'gcastror@confuturo.cl';
+              v_Rcpt_array(6)  := 'promerov@confuturo.cl';
+
+              v_text := 'Preliquidacion no fue generada para periodo : '||to_char(v_per_preliq)||' (Existe problemas en paramet_fechas).';
+
+                 PS_ENVIA_CORREO_CF(v_subject,
+                                    v_rcpt_array,
+                                    v_recipient,
+                                    v_text);
+            end;
+        end if;
+       else
+        begin
+              --Recipiente de direcciones
+              v_Rcpt_array(1)  := 'fortizs.externo@confuturo.cl';
+              v_Rcpt_array(2)  := 'jguerram@confuturo.cl';
+              v_Rcpt_array(3)  := 'rrubiod@confuturo.cl';
+              v_Rcpt_array(4)  := 'jvillalobosf@confuturo.cl';
+              v_Rcpt_array(5)  := 'gcastror@confuturo.cl';
+              v_Rcpt_array(6)  := 'promerov@confuturo.cl';
+
+              v_text := 'Preliquidacion no fue generada para periodo : '||to_char(v_per_preliq)||' (No Existen parametros de liquidacion ingresados).';
+
+                 PS_ENVIA_CORREO_CF(v_subject,
+                                    v_rcpt_array,
+                                    v_recipient,
+                                    v_text);
+         end;
+       end if;
+
+
+       ------------------------------------------------------------------------------
+       ------------------------------------------------------------------------------
+     end if;
+   end;
+end;
+/

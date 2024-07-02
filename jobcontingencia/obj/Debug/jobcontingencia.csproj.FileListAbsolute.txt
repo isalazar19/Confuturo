@@ -1,0 +1,6 @@
+C:\isalazar\NET\jobcontingencia\bin\Debug\jobcontingencia.exe.config
+C:\isalazar\NET\jobcontingencia\bin\Debug\jobcontingencia.exe
+C:\isalazar\NET\jobcontingencia\bin\Debug\jobcontingencia.pdb
+C:\isalazar\NET\jobcontingencia\obj\Debug\jobcontingencia.csproj.CoreCompileInputs.cache
+C:\isalazar\NET\jobcontingencia\obj\Debug\jobcontingencia.exe
+C:\isalazar\NET\jobcontingencia\obj\Debug\jobcontingencia.pdb

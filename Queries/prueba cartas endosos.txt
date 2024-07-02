@@ -1,0 +1,60 @@
+poliza 647562 fallecido pero sale en el listado como vivo
+argumentos del DW
+──────────────────
+g_linea=3
+l_poliza=647562
+ll_cau=1021933
+ll_ben=1478599
+ll_correl=1925500
+ll_grp_pag=1
+ldo_ben=1478599
+
+
+poliza 7849 fallecido
+argumentos del DW
+──────────────────
+g_linea=3
+l_poliza=7849
+ll_cau=1238931
+ll_ben=1248913
+ll_correl=1925564
+ll_grp_pag=1/2
+ldo_ben=1248913/1248912
+
+
+'d_carta_endoso_vivo_cony_post'
+poliza 607314 vivo
+argumentos del DW
+──────────────────
+g_linea=3
+l_poliza=607314
+ll_cau=1015152
+ll_ben=1072185
+ll_correl=1925449
+ll_grp_pag=0
+ldo_benef=1015152
+
+'d_carta_fallecido_matrimonio_hijo_ben'
+(1)poliza 678439 fallecido
+argumentos del DW
+──────────────────
+g_linea=3
+l_poliza=678439
+ll_cau=1478714
+ll_ben=1478716
+ll_correl=1925617
+ll_grp_pag=0
+ldo_ben=1478716
+
+(2)poliza 7627 fallecido
+argumentos del DW
+──────────────────
+g_linea=3
+l_poliza=7627
+ll_cau=1233968
+ll_ben=1245690
+ll_correl=1920617
+ll_grp_pag=0
+ldo_ben=1245688
+
+

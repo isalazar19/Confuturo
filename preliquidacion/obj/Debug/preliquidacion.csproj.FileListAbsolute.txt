@@ -1,0 +1,13 @@
+C:\isalazar\NET\preliquidacion\bin\Debug\preliquidacion.exe.config
+C:\isalazar\NET\preliquidacion\bin\Debug\preliquidacion.exe
+C:\isalazar\NET\preliquidacion\bin\Debug\preliquidacion.pdb
+C:\isalazar\NET\preliquidacion\bin\Debug\ClosedXML.dll
+C:\isalazar\NET\preliquidacion\bin\Debug\DocumentFormat.OpenXml.dll
+C:\isalazar\NET\preliquidacion\bin\Debug\preliquidacion.Data.dll
+C:\isalazar\NET\preliquidacion\bin\Debug\preliquidacion.Data.pdb
+C:\isalazar\NET\preliquidacion\bin\Debug\ClosedXML.xml
+C:\isalazar\NET\preliquidacion\obj\Debug\preliquidacion.csprojAssemblyReference.cache
+C:\isalazar\NET\preliquidacion\obj\Debug\preliquidacion.csproj.CoreCompileInputs.cache
+C:\isalazar\NET\preliquidacion\obj\Debug\preliquidacion.csproj.CopyComplete
+C:\isalazar\NET\preliquidacion\obj\Debug\preliquidacion.exe
+C:\isalazar\NET\preliquidacion\obj\Debug\preliquidacion.pdb

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.34112.143
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "contingencia", "contingencia\contingencia.csproj", "{9F26BB8B-8EAC-4782-8189-65F18D737D8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "contingencia.Data", "contingencia\contingencia.Data\contingencia.Data.csproj", "{7763F8FA-DFE9-4FF8-A668-BA3C39D08A5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F26BB8B-8EAC-4782-8189-65F18D737D8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F26BB8B-8EAC-4782-8189-65F18D737D8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F26BB8B-8EAC-4782-8189-65F18D737D8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F26BB8B-8EAC-4782-8189-65F18D737D8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7763F8FA-DFE9-4FF8-A668-BA3C39D08A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7763F8FA-DFE9-4FF8-A668-BA3C39D08A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7763F8FA-DFE9-4FF8-A668-BA3C39D08A5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7763F8FA-DFE9-4FF8-A668-BA3C39D08A5B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7CAD68C4-5510-45F9-AFD8-D98D5DC233E7}
+	EndGlobalSection
+EndGlobal

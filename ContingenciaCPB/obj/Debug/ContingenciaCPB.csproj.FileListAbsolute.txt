@@ -1,0 +1,5 @@
+C:\isalazar\NET\ContingenciaCPB\bin\Debug\ContingenciaCPB.exe
+C:\isalazar\NET\ContingenciaCPB\bin\Debug\ContingenciaCPB.pdb
+C:\isalazar\NET\ContingenciaCPB\obj\Debug\ContingenciaCPB.csproj.CoreCompileInputs.cache
+C:\isalazar\NET\ContingenciaCPB\obj\Debug\ContingenciaCPB.exe
+C:\isalazar\NET\ContingenciaCPB\obj\Debug\ContingenciaCPB.pdb

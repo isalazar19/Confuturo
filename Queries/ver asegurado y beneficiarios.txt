@@ -1,0 +1,15 @@
+* ver asegurado y beneficiarios
+select * from pensiones.endosos_bnl where end_poliza=607314
+
+select * from beneficiarios where ben_poliza=607314
+
+select nat_numrut||'-'||nat_dv, nat_nombre, nat_ap_pat, nat_ap_mat, nat_est_civil, 
+(select cod_ext from pensiones.codigos
+where cod_template LIKE 'TE01-ESTADOS-CIVILES%' and cod_int_num=nat_est_civil
+) , ben_relacion ,
+(select cod_ext from pensiones.codigos 
+where cod_template like 'TR07_RELACION_BENEFICIARIOS%' and cod_int_num=ben_relacion
+), nat_fec_muerte
+from persnat, pensiones.beneficiarios
+where ben_beneficiario=nat_id
+and nat_id in (1015152,1109031,1033948,1072185,1100502)

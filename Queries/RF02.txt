@@ -1,0 +1,53 @@
+select trunc(sysdate)from dual;
+
+select trunc(sysdate)-30,count(*) from pensiones.paramet_fechas where prm_tipo_tabla ='FRCAL' and trunc(sysdate)-30 between prm_fec_desde and (prm_fec_hasta+1);
+
+select cc.nat_numrut ||'-'|| cc.nat_dv, cc.nat_nomb, cc.nat_id, 
+       ben_relacion, ben_ind_der_re, ben_fec_est_civil, ben_linea
+from pensiones.beneficiarios, pensiones.persnat cc
+where ben_poliza = 2016 and 
+   	ben_beneficiario = cc.nat_id and 
+		ben_relacion = 4 and 
+		ben_linea = 3 and 
+		nat_fec_muerte is null ;	
+    
+select *from pensiones.codigos where cod_template like 'TR07_RELACION_BENEFICIARIOS%' order by 2
+
+/*query para DW RF02 */
+select cc.nat_numrut ||'-'|| cc.nat_dv, cc.nat_nomb, cod_ext, min(bnf_cobertura), cob_descripcion
+from pensiones.beneficiarios , pensiones.persnat cc, pensiones.beneficios, pensiones.COBERTURA, pensiones.codigos
+where ben_poliza=2016
+and ben_relacion in (4,7)
+and ben_beneficiario = cc.nat_id
+and ben_poliza = bnf_poliza
+AND BNF_COBERTURA = COBERTURA.COB_CODIGO
+and ben_relacion = cod_int_num
+and cod_template like 'TR07_RELACION_BENEFICIARIOS%' 
+group by cc.nat_numrut,cc.nat_dv, cc.nat_nomb, cod_ext, cob_descripcion
+
+select * from pensiones.datos_ben
+where dbe_numpoliza=2016
+
+/* verifica polizas con mas de 1 cobertura para luego determinar la vigente */
+select count(distinct bnf_cobertura), bnf_poliza from pensiones.beneficios
+group by bnf_poliza  having count(distinct bnf_cobertura) >1 order by 2 desc
+
+/* determina la cobertura vigente */
+select min(bnf_cobertura) as bnf_cobertura from pensiones.beneficios where bnf_poliza=677073
+
+/*
+ALTER TABLE pensiones.beneficiarios
+ADD BEN_HIJOS NUMBER;
+
+ALTER TABLE pensiones.datos_ben
+ADD DBE_HIJOS NUMBER;
+*/
+/*
+ALTER TABLE pensiones.beneficiarios MODIFY BEN_HIJOS NUMBER(3);
+
+ALTER TABLE pensiones.datos_ben MODIFY DBE_HIJOS NUMBER(3);
+*/
+
+comment on column pensiones.beneficiarios.ben_hijos is 'Indica si tiene hijos en comun 0=No 1=Si';
+
+comment on column pensiones.datos_ben.dbe_hijos is 'Indica si tiene hijos en comun 0=No 1=Si';
